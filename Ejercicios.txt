@@ -1,0 +1,297 @@
+EJERCICIO 1 ---Listar todas las carreras disponibles---
+
+SELECT * FROM carreras;
+
+
+EJERCICIO 2 ---Encontrar estudiantes matriculados en una carrera específica---
+
+SELECT e.nombre, e.apellido 
+FROM estudiantes e 
+JOIN inscripciones i ON e.idestudiante = i.idestudiante 
+JOIN carreras c ON i.idinscripcion = c.idcarrera 
+WHERE c.nombre = 'Tecnicatura Superior en Análisis de Sistemas';
+
+
+EJERCICIO 3 ---Obtener materias de primer año de una carrera---
+
+SELECT m.nombre
+FROM materias m
+JOIN carreras c ON m.idcarrera = c.idcarrera
+WHERE c.idcarrera = 1
+AND m.aniocursado = 1;
+
+
+EJERCICIO 4 ---Contar el número de estudiantes por carrera---
+
+SELECT c.nombre AS carrera, COUNT(e.idestudiante) AS cantidad_estudiantes
+FROM carreras c
+LEFT JOIN estudiantes e ON c.idcarrera = e.idcarrera
+GROUP BY c.nombre;
+
+
+EJERCICIO 5 ---Listar inscripciones activas---
+
+SELECT * FROM inscripciones
+WHERE estado = 'Activo';
+
+
+EJERCICIO 6 ---Obtener detalles de un estudiante específico---
+
+SELECT * FROM estudiantes
+WHERE dni = '41285952';
+
+
+EJERCICIO 7 ---Encontrar materias correlativas---
+
+SELECT mp.nombre AS materia_padre, mh.nombre AS materia_hijo
+FROM correlatividades c
+JOIN materias mp ON c.idmateriapadre = mp.idmateria
+JOIN materias mh ON c.idmateriahijo = mh.idmateria;
+
+
+EJERCICIO 8 ---Calcular el promedio de notas por estudiante---
+
+SELECT e.nombre, e.apellido, AVG(n.valor) AS promedio_notas
+FROM estudiantes e
+JOIN inscripciones i ON e.idestudiante = i.idestudiante
+JOIN notas n ON i.idinscripcion = n.idinscripcion
+GROUP BY e.nombre, e.apellido;
+
+
+EJERCICIO 9 ---Listar mesas disponibles para una materia específica---
+
+SELECT ma.nombre AS materia, m.fechahora, m.inicioinscripcion, m.fininscripcion
+FROM mesas m
+JOIN materias ma ON m.idmateria = ma.idmateria
+WHERE ma.nombre = 'Programacion I';
+
+
+EJERCICIO 10 ---Obtener roles y sus permisos asociados---
+
+SELECT r.tipo AS rol, p.nombre AS permiso
+FROM roles r
+JOIN roles_permisos rp ON r.idrol = rp.idrol
+JOIN permisos p ON rp.idpermiso = p.idpermiso;
+
+
+EJERCICIO 11 ---Encontrar usuarios con un rol específico---
+
+SELECT u.nombre
+FROM usuarios u
+JOIN roles r ON u.idrol = r.idrol
+WHERE r.tipo = 'Estudiante';
+
+
+EJERCICIO 12 ---Listar permisos por módulo---
+
+SELECT p.nombre AS permiso, p.modulo
+FROM permisos p
+GROUP BY p.modulo, p.nombre
+ORDER BY p.modulo;
+
+
+EJERCICIO 13 ---Obtener estudiantes con preinscripción reciente---
+
+SELECT e.nombre, e.apellido, em.fechapreinscripcion
+FROM estudiantes e
+JOIN estudiantes_mesas em ON e.idestudiante = em.idestudiante
+WHERE em.fechapreinscripcion > '2024-01-01';
+
+
+EJERCICIO 14 ---Listar notas por tipo de nota---
+
+SELECT tn.descripcion AS tipo_nota, n.valor, m.nombre AS nombre_materia
+FROM notas n
+JOIN tiponotas tn ON n.idtiponota = tn.idtiponota
+JOIN materias m ON n.idmateria = m.idmateria
+GROUP BY tn.descripcion, n.valor, m.nombre
+ORDER BY tn.descripcion, m.nombre;
+
+
+EJERCICIO 15 ---Actualizar la dirección de un estudiante---
+
+UPDATE estudiantes
+SET direccion = 'Nueva Dirección 123'
+WHERE dni = '41285952';
+
+
+EJERCICIO 16 ---Eliminar una inscripción específica---
+
+DELETE FROM inscripciones
+WHERE idinscripcion = 2;
+
+
+EJERCICIO 17 ---Insertar un nuevo usuario---
+
+INSERT INTO usuarios (nombre, clave, idrol, dni, apellido, correo, nombreusuario)
+VALUES ('Laura', 'securepass', 1, '33445566', 'Gomez', 'laura.gomez@example.com', 'laurag');
+
+
+EJERCICIO 18 ---Unir tablas para obtener información completa de inscripciones---
+
+SELECT e.nombre AS nombre_estudiante, 
+       e.apellido AS apellido_estudiante, 
+       m.nombre AS materia_inscrita, 
+       i.estado AS estado_inscripcion
+FROM inscripciones i
+JOIN estudiantes e ON i.idestudiante = e.idestudiante
+JOIN materias m ON i.idmateria = m.idmateria;
+
+
+EJERCICIO 19 ---Encontrar estudiantes con más de una inscripción activa---
+
+SELECT e.idestudiante, e.nombre, e.apellido, COUNT(i.idinscripcion) AS cantidad_inscripciones
+FROM estudiantes e
+JOIN inscripciones i ON e.idestudiante = i.idestudiante
+WHERE i.estado = 'Activo'
+GROUP BY e.idestudiante, e.nombre, e.apellido
+HAVING COUNT(i.idinscripcion) > 1;
+
+
+EJERCICIO 20 ---Obtener permisos de un usuario específico---
+
+SELECT p.nombre AS permiso
+FROM usuarios u
+JOIN roles_permisos rp ON u.idrol = rp.idrol
+JOIN permisos p ON rp.idpermiso = p.idpermiso
+WHERE u.nombreusuario = 'ivan01';
+
+
+EJERCICIO 21 ---Listar estudiantes nacidos en un año específico---
+
+SELECT nombre, apellido, fechanacimiento
+FROM estudiantes
+WHERE fechanacimiento BETWEEN '2000-01-01' AND '2003-12-31'
+ORDER BY fechanacimiento;
+
+
+EJERCICIO 22 ---Encontrar materias sin correlatividades---
+
+SELECT m.nombre
+FROM materias m
+LEFT JOIN correlatividades c ON m.idmateria = c.idmateriapadre OR m.idmateria = c.idmateriahijo
+WHERE c.idmateriapadre IS NULL AND c.idmateriahijo IS NULL;
+
+
+EJERCICIO 23 ---Obtener la última fecha de inscripción por mesa---
+
+SELECT c.nombre AS carrera, m.nombre AS materia, MAX(em.fechainscripcion) AS ultima_inscripcion
+FROM estudiantes_mesas em
+JOIN mesas ms ON em.idmesa = ms.idmesa
+JOIN materias m ON ms.idmateria = m.idmateria
+JOIN carreras c ON m.idcarrera = c.idcarrera
+GROUP BY c.nombre, m.nombre
+ORDER BY c.nombre, m.nombre;
+
+
+EJERCICIO 24 ---Listar estudiantes que no han realizado ninguna inscripción---
+
+SELECT e.nombre, e.apellido
+FROM estudiantes e
+LEFT JOIN inscripciones i ON e.idestudiante = i.idestudiante
+WHERE i.idinscripcion IS NULL;
+
+
+EJERCICIO 25 ---Contar materias por año cursado---
+
+SELECT c.nombre AS carrera, m.aniocursado, COUNT(m.idmateria) AS cantidad_materias
+FROM materias m
+JOIN carreras c ON m.idcarrera = c.idcarrera
+GROUP BY c.nombre, m.aniocursado
+ORDER BY c.nombre, m.aniocursado;
+
+
+EJERCICIO 26 ---Listar usuarios con múltiples roles---
+
+SELECT u.nombre, COUNT(up.idpermiso) AS cantidad_permisos
+FROM usuarios u
+JOIN usuarios_permisos up ON u.idusuario = up.idusuario
+GROUP BY u.idusuario, u.nombre
+HAVING COUNT(up.idpermiso) > 1
+ORDER BY u.nombre;
+
+
+EJERCICIO 27 ---Obtener materias con más de X estudiantes inscritos---
+
+SELECT m.nombre AS nombre_materia, COUNT(i.idinscripcion) AS cantidad_estudiantes
+FROM materias m
+JOIN inscripciones i ON m.idmateria = i.idmateria
+GROUP BY m.idmateria, m.nombre
+HAVING COUNT(i.idinscripcion) > 10
+ORDER BY cantidad_estudiantes DESC;
+
+
+EJERCICIO 28 ---Calcular la edad de cada estudiante---
+
+SELECT nombre, 
+       apellido, 
+       fechanacimiento, 
+       YEAR(CURDATE()) - YEAR(fechanacimiento) - 
+       (DATE_FORMAT(CURDATE(), '%m%d') < DATE_FORMAT(fechanacimiento, '%m%d')) AS edad
+FROM estudiantes;
+
+
+EJERCICIO 29 ---Listar carreras sin estudiantes inscritos---
+
+SELECT c.nombre AS carrera
+FROM carreras c
+LEFT JOIN estudiantes e ON c.idcarrera = e.idcarrera
+WHERE e.idestudiante IS NULL;
+
+
+EJERCICIO 30 ---Obtener el promedio de notas por materia y tipo de nota---
+
+SELECT m.nombre AS materia, tn.descripcion AS tipo_nota, AVG(n.valor) AS promedio_notas
+FROM notas n
+JOIN materias m ON n.idmateria = m.idmateria
+JOIN tiponotas tn ON n.idtiponota = tn.idtiponota
+GROUP BY m.nombre, tn.descripcion
+ORDER BY m.nombre, tn.descripcion;
+
+
+EJERCICIO 31 ---Listar estudiantes con inscripciones en múltiples carreras---
+
+SELECT e.nombre, e.apellido, c.nombre AS carrera
+FROM estudiantes e
+JOIN carreras c ON e.idcarrera = c.idcarrera
+WHERE e.dni IN (
+    SELECT dni
+    FROM estudiantes
+    GROUP BY dni
+    HAVING COUNT(DISTINCT idcarrera) > 1
+)
+ORDER BY c.nombre, e.dni;
+
+
+EJERCICIO 32 ---Mostrar la carrera con el mayor número de materias---
+
+SELECT c.nombre AS carrera, COUNT(m.idmateria) AS total_materias
+FROM carreras c
+JOIN materias m ON c.idcarrera = m.idcarrera
+GROUP BY c.nombre
+ORDER BY total_materias DESC
+LIMIT 1;
+
+
+EJERCICIO 33 ---Encontrar estudiantes que no tienen correo electrónico registrado---
+
+SELECT *
+FROM estudiantes
+WHERE correo IS NULL OR correo = '';
+
+
+EJERCICIO 34 ---Obtener usuarios ordenados por rol y nombre---
+
+SELECT u.idusuario, r.tipo AS tipo_rol, u.nombreusuario
+FROM usuarios u
+JOIN roles r ON u.idrol = r.idrol
+ORDER BY u.nombreusuario ASC;
+
+
+EJERCICIO 35 ---Listar materias que ya no están activas para inscripciones--
+
+SELECT m.nombre AS materia, ms.fininscripcion AS fin_inscripcion
+FROM materias m
+JOIN mesas ms ON m.idmateria = ms.idmateria
+WHERE ms.fininscripcion < CURRENT_DATE;
+
